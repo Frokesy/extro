@@ -1,10 +1,12 @@
 import axios from "axios";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 const VideoContainer = ({ videoData }) => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
+  const[downloadUrl, setDownloadUrl] = useState("")
 
   const convertVideoToAudio = async () => {
     setMessage("processing");
@@ -23,6 +25,7 @@ const VideoContainer = ({ videoData }) => {
       console.log(response.data);
       if (response.data.status === "ok") {
         setMessage("ok");
+        setDownloadUrl(response.data.link)
       } else if (response.data.status === "processing") {
         setMessage("Processing");
         setProgress(response.data.progress, "%");
@@ -84,10 +87,11 @@ const VideoContainer = ({ videoData }) => {
               </p>
               {message === "ok" & message !== "Error" ? (
                 <button
-                  onClick={convertVideoToAudio}
                   className="bg-green-600 font-bold text-[13px] px-4 py-1 rounded-md"
                 >
-                  Download
+                  <Link href={downloadUrl}>
+                    Download
+                  </Link>
                 </button>
               ) : (
                 <button
