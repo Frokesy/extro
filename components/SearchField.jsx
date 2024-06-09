@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const SearchField = ({ fetchVideoData }) => {
+const SearchField = ({ fetchVideoData, fetchVideoUrl }) => {
   const [videoUrl, setVideoUrl] = useState("");
   const api_key = process.env.NEXT_PUBLIC_YOUTUBE_API_KEY;
 
   const extractUrl = () => {
-    const videoId = videoUrl.split("v=")[1].split("&")[0];
-    console.log(videoId);
+    const videoId = videoUrl.split("v=")[1]?.split("&")[0];
     axios
       .get(
         `https://youtube.googleapis.com/youtube/v3/videos?part=snippet&part=contentDetails&id=${videoId}&key=${api_key}`
       )
       .then((response) => {
         fetchVideoData(response.data.items[0]);
+        fetchVideoUrl(videoUrl)
       });
   };
   return (

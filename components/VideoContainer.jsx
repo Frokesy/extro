@@ -1,12 +1,14 @@
 import axios from "axios";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-const VideoContainer = ({ videoData }) => {
+const VideoContainer = ({ videoData, videoUrl }) => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
-  const[downloadUrl, setDownloadUrl] = useState("")
+  const [downloadUrl, setDownloadUrl] = useState("");
+
+  const audioRef = useRef(null);
 
   const convertVideoToAudio = async () => {
     setMessage("processing");
@@ -22,17 +24,17 @@ const VideoContainer = ({ videoData }) => {
 
     try {
       const response = await axios.request(options);
-      console.log(response.data);
       if (response.data.status === "ok") {
         setMessage("ok");
-        setDownloadUrl(response.data.link)
+        setDownloadUrl(response.data.link);
+        console.log(response.data.link);
       } else if (response.data.status === "processing") {
         setMessage("Processing");
         setProgress(response.data.progress, "%");
       } else if (response.data.status === "fail") {
         setMessage("Error");
         setError(response.data.msg);
-      } 
+      }
     } catch (error) {
       console.error(error);
     }
@@ -55,18 +57,10 @@ const VideoContainer = ({ videoData }) => {
     const time = `${hours.toString().padStart(2, "0")}:${minutes
       .toString()
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
     return time;
   }
 
   const readableTime = convertTimeToReadableFormat(timeString);
-  useEffect(() => {
-    if (progress === 100) {
-      setMessage("ok");
-    } else {
-      console.log(progress);
-    }
-  }, [progress])
 
   return (
     <div>
@@ -77,7 +71,7 @@ const VideoContainer = ({ videoData }) => {
             alt="img"
             className="scale-75"
           />
-          <div className="">
+          <div className="w-[90%]">
             <h3 className="text-[#fff] font-bold text-[18px]">
               {videoData.snippet.title}
             </h3>
@@ -85,28 +79,26 @@ const VideoContainer = ({ videoData }) => {
               <p className="text-[#fff] text-[13px]">
                 Duration: {readableTime}
               </p>
-              {message === "ok" & message !== "Error" ? (
-                <button
-                  className="bg-green-600 font-bold text-[13px] px-4 py-1 rounded-md"
-                >
-                  <Link href={downloadUrl}>
-                    Download
-                  </Link>
+              {(message === "ok") & (message !== "Error") ? (
+                <button className="bg-green-600 font-bold text-[13px] px-4 py-1 rounded-md">
+                  <Link href={downloadUrl}>Download</Link>
                 </button>
               ) : (
                 <button
                   onClick={() => convertVideoToAudio()}
                   className="bg-green-600 font-bold text-[13px] px-4 py-1 rounded-md"
                 >
-                  {(message == "processing")
+                  {message == "processing"
                     ? `Processing ${progress}%`
                     : "Convert"}
                 </button>
               )}
             </div>
-          {error && (
-            <p className="text-red-500 text-[13px] pt-2">{error}</p>
-          )}
+            {error && <p className="text-red-500 text-[13px] pt-2">{error}</p>}
+            <button onClick={() => handlePlayAudio(videoUrl)}>
+              Play Audio
+            </button>
+            <audio ref={audioRef} controls style={{ width: "100%" }}></audio>
           </div>
         </div>
       )}
